@@ -1,0 +1,17 @@
+{
+  "lang": "ko",
+  "nav": {
+    "home": "미리보기",
+    "guide": "가이드",
+    "faq": "FAQ"
+  },
+  "site": {
+    "name": "SERP 스니펫 미리보기"
+  },
+  "footer": {
+    "text": "© 2026 serp.bal.pe.kr · 검색 결과 UI는 참고용 시뮬레이션입니다 (실제 렌더링은 검색엔진 알고리즘을 따름).",
+    "privacy": "개인정보처리방침",
+    "terms": "이용약관",
+    "contact": "문의"
+  }
+}

@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+/**
+ * dist/ 로 빌드된 SPA 를 puppeteer 로 렌더해 각 route 의 HTML 을 정적 파일로 저장.
+ * 언어별 경로(ko: /, en: /en/*)를 모두 순회.
+ */
 import { createServer } from 'http';
 import { writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
@@ -7,11 +11,27 @@ import puppeteer from 'puppeteer';
 
 const DIST = 'dist';
 const PORT = Number(process.env.PRERENDER_PORT) || 4173;
-const ROUTES = ['/', '/guide', '/faq'];
+
+const BASE_ROUTES = [
+  '/',
+  '/guide',
+  '/faq',
+];
+
+const LANGS = ['ko', 'en'];
+
+const ROUTES = LANGS.flatMap((lang) =>
+  BASE_ROUTES.map((r) =>
+    lang === 'ko' ? r : r === '/' ? '/en' : `/en${r}`,
+  ),
+);
 
 function startServer() {
   const server = createServer((req, res) => {
-    handler(req, res, { public: DIST, rewrites: [{ source: '**', destination: '/index.html' }] });
+    handler(req, res, {
+      public: DIST,
+      rewrites: [{ source: '**', destination: '/index.html' }],
+    });
   });
   return new Promise((resolve) => server.listen(PORT, () => resolve(server)));
 }
@@ -20,8 +40,14 @@ async function prerenderRoute(browser, route) {
   const page = await browser.newPage();
   page.setDefaultNavigationTimeout(30000);
   await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'networkidle0' });
-  try { await page.waitForSelector('h1', { timeout: 5000 }); } catch { console.warn(`! ${route}: h1 not found`); }
-    await page.evaluate(() => {
+
+  try {
+    await page.waitForSelector('h1', { timeout: 5000 });
+  } catch {
+    console.warn(`! ${route}: h1 not found within 5s (continuing)`);
+  }
+
+  await page.evaluate(() => {
     const keepLast = (sel) => {
       const n = document.querySelectorAll(sel);
       for (let i = 0; i < n.length - 1; i++) n[i].remove();
@@ -42,14 +68,27 @@ async function prerenderRoute(browser, route) {
   return html;
 }
 
+function outPathFor(route) {
+  if (route === '/') return join(DIST, 'index.html');
+  if (route === '/en') return join(DIST, 'en', 'index.html');
+  return join(DIST, route.slice(1), 'index.html');
+}
+
 async function main() {
+  console.log('→ start static server');
   const server = await startServer();
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+
+  console.log('→ launch puppeteer');
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+
   try {
     for (const route of ROUTES) {
       process.stdout.write(`  prerendering ${route} ... `);
       const html = await prerenderRoute(browser, route);
-      const outPath = route === '/' ? join(DIST, 'index.html') : join(DIST, route.slice(1), 'index.html');
+      const outPath = outPathFor(route);
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, html);
       console.log('✓');
@@ -61,4 +100,7 @@ async function main() {
   console.log('✓ prerender done');
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import SEO from '../components/SEO';
+import { useLang, detectLangFromPath, withLangPrefix } from '../lib/i18n';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -12,67 +13,130 @@ const jsonLd = {
 };
 
 export default function Guide() {
+  const { lang } = useLang();
+  const location = useLocation();
+  const currentLang = detectLangFromPath(location.pathname);
+  const p = (path: string) => withLangPrefix(path, currentLang);
+
+  const title = lang === 'ko'
+    ? 'SERP 최적화 가이드 — 제목·설명 길이와 키워드 배치'
+    : 'SERP Optimization Guide — Title & Description Length and Keyword Placement';
+  const desc = lang === 'ko'
+    ? '네이버·구글 검색결과에서 잘리지 않는 제목 길이, 클릭률을 높이는 설명 문구, 키워드 앞자리 배치 규칙을 정리.'
+    : 'How to write titles and descriptions that don\'t get cut off in Naver and Google, with keyword placement rules to maximize click-through rate.';
+
   return (
     <>
-      <SEO
-        title="SERP 최적화 가이드 — 제목·설명 길이와 키워드 배치"
-        description="네이버·구글 검색결과에서 잘리지 않는 제목 길이, 클릭률을 높이는 설명 문구, 키워드 앞자리 배치 규칙을 정리."
-        path="/guide"
-        jsonLd={jsonLd}
-      />
+      <SEO title={title} description={desc} path="/guide" jsonLd={jsonLd} />
 
-      <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">SERP 최적화 가이드</h1>
-      <p className="mt-2 text-sm text-slate-600">검색결과에서 잘리지 않는 제목·설명 작성 요령.</p>
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{lang === 'ko' ? 'SERP 최적화 가이드' : 'SERP Optimization Guide'}</h1>
+      <p className="mt-2 text-sm text-slate-600">{lang === 'ko' ? '검색결과에서 잘리지 않는 제목·설명 작성 요령.' : 'How to write titles and descriptions that display perfectly in search results.'}</p>
 
-      <article className="prose prose-slate mt-8 max-w-none text-[15px]">
-        <h2>1. 제목(title) 작성 원칙</h2>
-        <ul>
-          <li><strong>앞 30자 안에 핵심 키워드</strong>를 배치. 모바일은 30자 뒤가 잘립니다.</li>
-          <li>파이프(|) · 하이픈(-)으로 <strong>메인 키워드</strong> + <strong>보조</strong> 구조.</li>
-          <li>이모지는 1~2개 허용 (브랜드 차별화). 과다 사용은 스팸 신호.</li>
-          <li>대문자·숫자·괄호 활용 → 시인성 ↑.</li>
-        </ul>
-
-        <h2>2. 설명(meta description) 원칙</h2>
-        <ul>
-          <li>네이버: <strong>80자</strong> 이내가 완전 노출. 초과분 "…" 처리.</li>
-          <li>구글: <strong>150~160자</strong> 권장. 모바일은 120자.</li>
-          <li><strong>행동 유도</strong> 문구(확인하세요·비교해보세요·무료) 포함 시 CTR ↑.</li>
-          <li>키워드를 자연스럽게 2회 이내 포함 (중복은 역효과).</li>
-        </ul>
-
-        <h2>3. URL 구조</h2>
-        <ul>
-          <li>짧고 의미 있는 slug: <code>/seo-guide</code> &gt; <code>/article?id=12345</code>.</li>
-          <li>한글 URL 가능하나 길어져 가독성 저하. 영문 slug 권장.</li>
-          <li>카테고리 계층 3단계 이내: <code>/blog/seo/snippet-preview</code>.</li>
-        </ul>
-
-        <h2>4. CTR 높이는 테크닉</h2>
-        <ul>
-          <li>숫자 포함: "5가지 방법", "2026 버전".</li>
-          <li>질문형 제목: "~할 때 주의할 점?".</li>
-          <li>대괄호 [ ] 로 태그 강조: "[리뷰] ...".</li>
-          <li>최신성 시그널: "2026년", "최신", "업데이트".</li>
-        </ul>
-
-        <h2>5. 피해야 할 것</h2>
-        <ul>
-          <li>제목 중복 (사이트 내 동일 키워드 많으면 구글이 자동 재작성).</li>
-          <li>낚시성 제목 + 내용 불일치 → 이탈률 증가 → 순위 하락.</li>
-          <li>한 줄에 키워드 몰아넣기 ("SEO 블로그 제목 최적화 가이드 방법 2026 ...").</li>
-        </ul>
-
-        <h2>6. 참고 자료</h2>
-        <ul>
-          <li>Google Search Central — Snippets.</li>
-          <li>네이버 검색 가이드 (웹마스터 도구).</li>
-        </ul>
-      </article>
+      {lang === 'ko' ? <GuideKo /> : <GuideEn />}
 
       <p className="mt-8 text-sm text-slate-500">
-        <Link to="/" className="underline">미리보기로 돌아가기</Link>.
+        <Link to={p('/')} className="underline">{lang === 'ko' ? '미리보기로 돌아가기' : 'Back to the tool'}</Link>.
       </p>
     </>
+  );
+}
+
+function GuideKo() {
+  return (
+    <article className="prose prose-slate mt-8 max-w-none text-[15px]">
+      <h2>1. 제목(title) 작성 원칙</h2>
+      <ul>
+        <li><strong>앞 30자 안에 핵심 키워드</strong>를 배치. 모바일은 30자 뒤가 잘립니다.</li>
+        <li>파이프(|) · 하이픈(-)으로 <strong>메인 키워드</strong> + <strong>보조</strong> 구조.</li>
+        <li>이모지는 1~2개 허용 (브랜드 차별화). 과다 사용은 스팸 신호.</li>
+        <li>대문자·숫자·괄호 활용 → 시인성 ↑.</li>
+      </ul>
+
+      <h2>2. 설명(meta description) 원칙</h2>
+      <ul>
+        <li>네이버: <strong>80자</strong> 이내가 완전 노출. 초과분 "…" 처리.</li>
+        <li>구글: <strong>150~160자</strong> 권장. 모바일은 120자.</li>
+        <li><strong>행동 유도</strong> 문구(확인하세요·비교해보세요·무료) 포함 시 CTR ↑.</li>
+        <li>키워드를 자연스럽게 2회 이내 포함 (중복은 역효과).</li>
+      </ul>
+
+      <h2>3. URL 구조</h2>
+      <ul>
+        <li>짧고 의미 있는 slug: <code>/seo-guide</code> &gt; <code>/article?id=12345</code>.</li>
+        <li>한글 URL 가능하나 길어져 가독성 저하. 영문 slug 권장.</li>
+        <li>카테고리 계층 3단계 이내: <code>/blog/seo/snippet-preview</code>.</li>
+      </ul>
+
+      <h2>4. CTR 높이는 테크닉</h2>
+      <ul>
+        <li>숫자 포함: "5가지 방법", "2026 버전".</li>
+        <li>질문형 제목: "~할 때 주의할 점?".</li>
+        <li>대괄호 [ ] 로 태그 강조: "[리뷰] ...".</li>
+        <li>최신성 시그널: "2026년", "최신", "업데이트".</li>
+      </ul>
+
+      <h2>5. 피해야 할 것</h2>
+      <ul>
+        <li>제목 중복 (사이트 내 동일 키워드 많으면 구글이 자동 재작성).</li>
+        <li>낚시성 제목 + 내용 불일치 → 이탈률 증가 → 순위 하락.</li>
+        <li>한 줄에 키워드 몰아넣기 ("SEO 블로그 제목 최적화 가이드 방법 2026 ...").</li>
+      </ul>
+
+      <h2>6. 참고 자료</h2>
+      <ul>
+        <li>Google Search Central — Snippets.</li>
+        <li>네이버 검색 가이드 (웹마스터 도구).</li>
+      </ul>
+    </article>
+  );
+}
+
+function GuideEn() {
+  return (
+    <article className="prose prose-slate mt-8 max-w-none text-[15px]">
+      <h2>1. Title tag principles</h2>
+      <ul>
+        <li>Place your <strong>primary keyword within the first 30 characters</strong> — mobile truncates after that.</li>
+        <li>Use pipe (|) or hyphen (-) to structure <strong>main keyword + secondary</strong>.</li>
+        <li>1–2 emojis are fine for brand differentiation; overuse is a spam signal.</li>
+        <li>Capitalization, numbers and brackets improve scannability.</li>
+      </ul>
+
+      <h2>2. Meta description principles</h2>
+      <ul>
+        <li>Naver: stay under <strong>80 characters</strong> for full display; excess is truncated with "…".</li>
+        <li>Google: <strong>150–160 characters</strong> recommended; mobile is ~120 characters.</li>
+        <li>Include <strong>calls to action</strong> (Check it out, Compare, Free) to boost CTR.</li>
+        <li>Include your keyword naturally, at most twice — repetition backfires.</li>
+      </ul>
+
+      <h2>3. URL structure</h2>
+      <ul>
+        <li>Short, descriptive slugs: <code>/seo-guide</code> beats <code>/article?id=12345</code>.</li>
+        <li>English slugs are preferred — Korean URLs encode long and hurt readability.</li>
+        <li>Keep hierarchy to 3 levels: <code>/blog/seo/snippet-preview</code>.</li>
+      </ul>
+
+      <h2>4. CTR-boosting techniques</h2>
+      <ul>
+        <li>Use numbers: "5 Ways to …", "2026 Edition".</li>
+        <li>Question titles: "What to Watch Out for When …?"</li>
+        <li>Brackets for tags: "[Review] …"</li>
+        <li>Freshness signals: "2026", "Latest", "Updated".</li>
+      </ul>
+
+      <h2>5. Things to avoid</h2>
+      <ul>
+        <li>Duplicate titles across pages — Google rewrites them automatically if keywords repeat too much.</li>
+        <li>Clickbait + mismatched content → high bounce rate → ranking drop.</li>
+        <li>Keyword stuffing in a single line ("SEO Blog Title Optimization Guide Method 2026 …").</li>
+      </ul>
+
+      <h2>6. References</h2>
+      <ul>
+        <li>Google Search Central — Snippets.</li>
+        <li>Naver Search Guide (Webmaster Tools).</li>
+      </ul>
+    </article>
   );
 }

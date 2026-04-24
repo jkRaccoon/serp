@@ -1,0 +1,17 @@
+{
+  "lang": "en",
+  "nav": {
+    "home": "Preview",
+    "guide": "Guide",
+    "faq": "FAQ"
+  },
+  "site": {
+    "name": "SERP Snippet Preview"
+  },
+  "footer": {
+    "text": "© 2026 serp.bal.pe.kr · Search result UI is a simulation for reference (actual rendering follows each search engine's algorithm).",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
+  }
+}

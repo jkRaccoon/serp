@@ -1,19 +1,28 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import SEO from '../components/SEO';
 import { track } from '../lib/track';
 import { LIMITS, breadcrumb, charWidthPx, hostname, truncateByChar, type SerpInput } from '../lib/serp';
+import { useLang, detectLangFromPath, withLangPrefix } from '../lib/i18n';
 
 const STORAGE = 'serp-input';
 
-const DEFAULT: SerpInput = {
+const DEFAULT_KO: SerpInput = {
   url: 'https://example.com/article-title',
   title: '한국어 SEO 최적화 가이드 — 타이틀과 설명 작성 요령',
   description: '제목 38자, 설명 80자 이내가 네이버 검색결과에 온전히 노출됩니다. 구글은 길이보다 픽셀 단위가 중요합니다.',
   date: new Date().toLocaleDateString('ko-KR'),
 };
 
-function load(): SerpInput {
+const DEFAULT_EN: SerpInput = {
+  url: 'https://example.com/article-title',
+  title: 'Korean SEO Optimization Guide — Title and Description Tips',
+  description: 'Keep your title under 600px (≈60 chars) for Google, under 38 chars for Naver. Meta description: 150–160 chars for Google, 80 chars for Naver.',
+  date: new Date().toLocaleDateString('en-US'),
+};
+
+function load(lang: 'ko' | 'en'): SerpInput {
+  const DEFAULT = lang === 'en' ? DEFAULT_EN : DEFAULT_KO;
   if (typeof window === 'undefined') return DEFAULT;
   try {
     const raw = localStorage.getItem(STORAGE);
@@ -38,7 +47,11 @@ const jsonLd = {
 };
 
 export default function Home() {
-  const [form, setForm] = useState<SerpInput>(load);
+  const { lang } = useLang();
+  const location = useLocation();
+  const currentLang = detectLangFromPath(location.pathname);
+  const p = (path: string) => withLangPrefix(path, currentLang);
+  const [form, setForm] = useState<SerpInput>(() => load(lang));
   const persist = useCallback((next: SerpInput) => {
     setForm(next);
     if (typeof window !== 'undefined') localStorage.setItem(STORAGE, JSON.stringify(next));
@@ -56,22 +69,22 @@ export default function Home() {
   return (
     <>
       <SEO
-        title="SERP 스니펫 미리보기 — 네이버·구글 검색결과 시뮬레이션"
-        description="제목·설명·URL을 입력하면 네이버·구글·모바일 검색결과에서 어떻게 노출되는지 실시간 미리보기. 글자 수·픽셀 한계 자동 감지."
+        title={lang === 'ko' ? 'SERP 스니펫 미리보기 — 네이버·구글 검색결과 시뮬레이션' : 'SERP Snippet Preview — Naver & Google Search Result Simulator'}
+        description={lang === 'ko' ? '제목·설명·URL을 입력하면 네이버·구글·모바일 검색결과에서 어떻게 노출되는지 실시간 미리보기. 글자 수·픽셀 한계 자동 감지.' : 'Enter your title, description and URL to preview how they appear in Naver, Google and mobile search results. Detects pixel and character limits in real time.'}
         path="/"
         jsonLd={jsonLd}
       />
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">SERP 스니펫 미리보기</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{lang === 'ko' ? 'SERP 스니펫 미리보기' : 'SERP Snippet Preview'}</h1>
         <p className="mt-2 text-sm text-slate-600">
-          <span className="font-medium text-blue-700">네이버·구글·모바일</span> 검색결과에서 제목·설명이 어떻게 잘리는지 실시간 확인.
+          <span className="font-medium text-blue-700">{lang === 'ko' ? '네이버·구글·모바일' : 'Naver · Google · Mobile'}</span> {lang === 'ko' ? '검색결과에서 제목·설명이 어떻게 잘리는지 실시간 확인.' : 'See how your title and description are truncated in real time.'}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-          <h2 className="text-base font-semibold text-slate-900">입력</h2>
+          <h2 className="text-base font-semibold text-slate-900">{lang === 'ko' ? '입력' : 'Input'}</h2>
           <div className="mt-4 space-y-3">
             <label className="block">
               <span className="text-sm font-medium text-slate-800">URL</span>
@@ -82,7 +95,7 @@ export default function Home() {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-slate-800">제목 (title)</span>
+              <span className="text-sm font-medium text-slate-800">{lang === 'ko' ? '제목 (title)' : 'Title'}</span>
               <textarea
                 rows={2}
                 value={form.title}
@@ -90,26 +103,26 @@ export default function Home() {
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
               <span className="mt-1 flex justify-between text-xs text-slate-500">
-                <span>{form.title.length} 자 · 약 {googleTitlePx}px</span>
-                <span className={googleOverflow ? 'text-rose-700' : 'text-emerald-700'}>{googleOverflow ? '⚠️ 구글 600px 초과' : '✓ 구글 600px 이내'}</span>
+                <span>{form.title.length} {lang === 'ko' ? '자' : 'chars'} · ~{googleTitlePx}px</span>
+                <span className={googleOverflow ? 'text-rose-700' : 'text-emerald-700'}>{googleOverflow ? (lang === 'ko' ? '⚠️ 구글 600px 초과' : '⚠️ over 600px') : (lang === 'ko' ? '✓ 구글 600px 이내' : '✓ within 600px')}</span>
               </span>
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-slate-800">설명 (description)</span>
+              <span className="text-sm font-medium text-slate-800">{lang === 'ko' ? '설명 (description)' : 'Description'}</span>
               <textarea
                 rows={3}
                 value={form.description}
                 onChange={(e) => persist({ ...form, description: e.target.value })}
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
-              <span className="mt-1 block text-xs text-slate-500">{form.description.length} 자</span>
+              <span className="mt-1 block text-xs text-slate-500">{form.description.length} {lang === 'ko' ? '자' : 'chars'}</span>
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-slate-800">게시일 (선택)</span>
+              <span className="text-sm font-medium text-slate-800">{lang === 'ko' ? '게시일 (선택)' : 'Date (optional)'}</span>
               <input
                 value={form.date}
                 onChange={(e) => persist({ ...form, date: e.target.value })}
-                placeholder="2026. 4. 19."
+                placeholder={lang === 'ko' ? '2026. 4. 19.' : 'Apr 19, 2026'}
                 className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
             </label>
@@ -148,7 +161,7 @@ export default function Home() {
 
           {/* Mobile */}
           <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Mobile (Google / 통합)</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-600">{lang === 'ko' ? 'Mobile (Google / 통합)' : 'Mobile (Google / Unified)'}</p>
             <div className="max-w-[380px] rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
               <p className="text-xs text-slate-500">{hostname(form.url)}</p>
               <p className="mt-1 text-[17px] font-semibold leading-tight text-[#1a0dab]">{mobileTitleTrunc}</p>
@@ -161,22 +174,30 @@ export default function Home() {
       </div>
 
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">검색엔진별 권장 글자 수</h2>
-        <ul className="mt-3 space-y-1 text-sm text-slate-700">
-          <li>• <strong>구글</strong>: 제목 ~600px (약 한글 30~35자 / 영문 60자), 설명 150~160자</li>
-          <li>• <strong>네이버</strong>: 제목 약 <strong>38자</strong>, 설명 약 <strong>80자</strong>까지 완전 표시</li>
-          <li>• <strong>모바일</strong>: 제목 32자 내외, 설명 120자 내외 권장</li>
-        </ul>
+        <h2 className="text-base font-semibold text-slate-900">{lang === 'ko' ? '검색엔진별 권장 글자 수' : 'Recommended limits by search engine'}</h2>
+        {lang === 'ko' ? (
+          <ul className="mt-3 space-y-1 text-sm text-slate-700">
+            <li>• <strong>구글</strong>: 제목 ~600px (약 한글 30~35자 / 영문 60자), 설명 150~160자</li>
+            <li>• <strong>네이버</strong>: 제목 약 <strong>38자</strong>, 설명 약 <strong>80자</strong>까지 완전 표시</li>
+            <li>• <strong>모바일</strong>: 제목 32자 내외, 설명 120자 내외 권장</li>
+          </ul>
+        ) : (
+          <ul className="mt-3 space-y-1 text-sm text-slate-700">
+            <li>• <strong>Google</strong>: title ~600px (≈30–35 Korean chars / 60 Latin chars), description 150–160 chars</li>
+            <li>• <strong>Naver</strong>: title ~<strong>38 chars</strong>, description ~<strong>80 chars</strong> fully displayed</li>
+            <li>• <strong>Mobile</strong>: title ~32 chars, description ~120 chars recommended</li>
+          </ul>
+        )}
       </section>
 
       <section className="mt-10 border-t border-slate-200 pt-6 text-xs text-slate-500">
         <p>
-          SEO 작성 팁은{' '}
-          <Link to="/guide" className="underline">
-            가이드
+          {lang === 'ko' ? 'SEO 작성 팁은' : 'SEO tips in the'}{' '}
+          <Link to={p('/guide')} className="underline">
+            {lang === 'ko' ? '가이드' : 'Guide'}
           </Link>
-          , FAQ 는{' '}
-          <Link to="/faq" className="underline">
+          {lang === 'ko' ? ', FAQ 는' : ', questions in'}{' '}
+          <Link to={p('/faq')} className="underline">
             FAQ
           </Link>
           .
