@@ -15,7 +15,24 @@
       crossorigin="anonymous"></script>
     <title>SERP 스니펫 미리보기 — 네이버·구글 검색결과 시뮬레이션</title>
     <meta name="description" content="제목·설명·URL을 입력하면 네이버·구글·모바일 검색결과에서 어떻게 노출되는지 실시간 미리보기. 글자 수·픽셀 한계 자동 감지." />
-  </head>
+  <!-- Google Analytics 4 (shared property G-PDW82YCFFW) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PDW82YCFFW"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        analytics_storage: 'granted',
+        functionality_storage: 'granted',
+        personalization_storage: 'granted',
+        security_storage: 'granted'
+      });
+      gtag('js', new Date());
+      gtag('config', 'G-PDW82YCFFW', { send_page_view: true });
+    </script>
+    </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
