@@ -62,6 +62,9 @@ async function prerenderRoute(browser, route) {
     keepLast('meta[name="twitter:title"]');
     keepLast('meta[name="twitter:description"]');
     keepLast('meta[name="twitter:image"]');
+    keepLast('meta[name="robots"]');
+    keepLast('meta[property="og:image:alt"]');
+    keepLast('meta[name="twitter:image:alt"]');
   });
   const html = await page.content();
   await page.close();
