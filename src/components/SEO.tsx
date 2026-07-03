@@ -5,6 +5,7 @@ interface SEOProps {
   description: string;
   path: string;
   jsonLd?: object;
+  noindex?: boolean;
 }
 
 const SITE = 'https://serp.bal.pe.kr';
@@ -13,7 +14,7 @@ const SUFFIX_EN = 'SERP Preview · Browser-based';
 const PUBLISHER_NAME = 'bal.pe.kr';
 const PUBLISHER_URL = 'https://bal.pe.kr';
 
-export default function SEO({ title, description, path, jsonLd }: SEOProps) {
+export default function SEO({ title, description, path, jsonLd, noindex }: SEOProps) {
   const { lang } = useLang();
   const koPath = path;
   const enPath = withLangPrefix(path, 'en');
@@ -47,7 +48,7 @@ export default function SEO({ title, description, path, jsonLd }: SEOProps) {
     <>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
+      <meta name="robots" content={noindex ? "noindex,nofollow" : "index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"} />
       <link rel="canonical" href={url} />
       <link rel="alternate" hrefLang="ko" href={`${SITE}${koPath}`} />
       <link rel="alternate" hrefLang="en" href={`${SITE}${enPath}`} />
@@ -75,12 +76,21 @@ export default function SEO({ title, description, path, jsonLd }: SEOProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
+      {(() => {
+        // SEO_KIT_PATCHED_V2: HowTo schema 자동 필터 (v2 표준, [[feedback_seo_strategy_v2]])
+        if (!jsonLd) return null;
+        const filtered = Array.isArray(jsonLd)
+          ? (jsonLd as unknown[]).filter((s) => (s as { '@type'?: string })['@type'] !== 'HowTo')
+          : ((jsonLd as { '@type'?: string })['@type'] === 'HowTo' ? null : jsonLd);
+        if (!filtered) return null;
+        if (Array.isArray(filtered) && filtered.length === 0) return null;
+        return (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(filtered) }}
+          />
+        );
+      })()}
     </>
   );
 }
