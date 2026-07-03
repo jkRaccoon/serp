@@ -3,14 +3,15 @@
  * dist/ 로 빌드된 SPA 를 puppeteer 로 렌더해 각 route 의 HTML 을 정적 파일로 저장.
  * 언어별 경로(ko: /, en: /en/*)를 모두 순회.
  */
-import { createServer } from 'http';
 import { writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
-import handler from 'serve-handler';
+import { preview } from 'vite';
 import puppeteer from 'puppeteer';
 
 const DIST = 'dist';
-const PORT = Number(process.env.PRERENDER_PORT) || 4173;
+const PORT = 4173 + Math.floor((process.pid % 1000)); // 병렬 빌드 포트 충돌 회피
+const SUBDIR = process.env.BUILD_TARGET === 'subdir';
+const BASE = SUBDIR ? '/tools/serp/' : '/';
 
 const BASE_ROUTES = [
   '/',
@@ -26,14 +27,8 @@ const ROUTES = LANGS.flatMap((lang) =>
   ),
 );
 
-function startServer() {
-  const server = createServer((req, res) => {
-    handler(req, res, {
-      public: DIST,
-      rewrites: [{ source: '**', destination: '/index.html' }],
-    });
-  });
-  return new Promise((resolve) => server.listen(PORT, () => resolve(server)));
+async function startServer() {
+  return preview({ preview: { port: PORT }, base: BASE });
 }
 
 async function prerenderRoute(browser, route) {
@@ -50,7 +45,8 @@ async function prerenderRoute(browser, route) {
       req.continue();
     }
   });
-  await page.goto(`http://localhost:${PORT}${route}`, { waitUntil: 'networkidle0' });
+  const routePath = route === '/' ? BASE : `${BASE}${route.slice(1)}`;
+  await page.goto(`http://localhost:${PORT}${routePath}`, { waitUntil: 'networkidle0' });
 
   try {
     await page.waitForSelector('h1', { timeout: 5000 });
@@ -122,7 +118,7 @@ async function main() {
     }
   } finally {
     await browser.close();
-    server.close();
+    server.httpServer.close();
   }
   console.log('✓ prerender done');
 }

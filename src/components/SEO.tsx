@@ -8,7 +8,9 @@ interface SEOProps {
   noindex?: boolean;
 }
 
-const SITE = 'https://serp.bal.pe.kr';
+const SITE = 'https://bal.pe.kr';
+const BASE_PATH = '/tools/serp';
+const withBase = (p: string) => (p === '/' ? `${BASE_PATH}/` : `${BASE_PATH}${p}`);
 const SUFFIX_KO = 'SERP 미리보기 · 브라우저 내 처리';
 const SUFFIX_EN = 'SERP Preview · Browser-based';
 const PUBLISHER_NAME = 'bal.pe.kr';
@@ -16,8 +18,8 @@ const PUBLISHER_URL = 'https://bal.pe.kr';
 
 export default function SEO({ title, description, path, jsonLd, noindex }: SEOProps) {
   const { lang } = useLang();
-  const koPath = path;
-  const enPath = withLangPrefix(path, 'en');
+  const koPath = withBase(path);
+  const enPath = withBase(withLangPrefix(path, 'en'));
   const currentPath = lang === 'ko' ? koPath : enPath;
   const url = `${SITE}${currentPath}`;
   const suffix = lang === 'ko' ? SUFFIX_KO : SUFFIX_EN;
@@ -25,7 +27,7 @@ export default function SEO({ title, description, path, jsonLd, noindex }: SEOPr
   const locale = lang === 'ko' ? 'ko_KR' : 'en_US';
   const siteName = lang === 'ko' ? 'SERP 스니펫 미리보기' : 'SERP Snippet Preview';
 
-  const homeUrl = `${SITE}${lang === 'ko' ? '/' : '/en'}`;
+  const homeUrl = `${SITE}${withBase(lang === 'ko' ? '/' : '/en')}`;
   const breadcrumbItems: Array<{ '@type': 'ListItem'; position: number; name: string; item: string }> = [
     { '@type': 'ListItem', position: 1, name: siteName, item: homeUrl },
   ];
@@ -58,7 +60,7 @@ export default function SEO({ title, description, path, jsonLd, noindex }: SEOPr
       <meta property="og:type" content="website" />
       <meta property="og:url" content={url} />
       <meta property="og:locale" content={locale} />
-      <meta property="og:image" content={`${SITE}/og.png`} />
+      <meta property="og:image" content={`${SITE}${BASE_PATH}/og.png`} />
       <meta property="og:image:alt" content={fullTitle} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
@@ -66,7 +68,7 @@ export default function SEO({ title, description, path, jsonLd, noindex }: SEOPr
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={`${SITE}/og.png`} />
+      <meta name="twitter:image" content={`${SITE}${BASE_PATH}/og.png`} />
       <meta name="twitter:image:alt" content={fullTitle} />
       <script
         type="application/ld+json"
