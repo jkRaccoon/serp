@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import Analytics from '../components/Analytics';
 import CoupangBanner from '../components/CoupangBanner';
+import RelatedTools from '../components/RelatedTools';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useLang, withLangPrefix, detectLangFromPath } from '../lib/i18n';
 
@@ -64,9 +65,10 @@ export default function RootLayout() {
 
       <main className="mx-auto max-w-5xl px-6 py-8">
         <Outlet />
+        <CoupangBanner position="bottom" className="mx-auto max-w-4xl px-6" />
+        <RelatedTools />
       </main>
 
-      <CoupangBanner className="mx-auto max-w-4xl px-6" />
 
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-6 py-6 text-xs text-slate-500">

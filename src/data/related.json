@@ -1,0 +1,52 @@
+{
+  "hub": {
+    "id": "digital",
+    "emoji": "🧑‍💻",
+    "ko": "개발·디지털 툴",
+    "en": "Developer & Digital Tools"
+  },
+  "tools": [
+    {
+      "slug": "shortshook",
+      "url": "https://bal.pe.kr/tools/shortshook",
+      "emoji": "⚡",
+      "ko": "숏폼 훅 타이밍 가이드",
+      "en": "Short-form Hook Timing Guide"
+    },
+    {
+      "slug": "subconvert",
+      "url": "https://bal.pe.kr/tools/subconvert",
+      "emoji": "💬",
+      "ko": "자막 포맷 변환기 (SRT·VTT·SMI)",
+      "en": "Subtitle Format Converter (SRT/VTT/SMI)"
+    },
+    {
+      "slug": "yttime",
+      "url": "https://bal.pe.kr/tools/yttime",
+      "emoji": "⏰",
+      "ko": "유튜브 업로드 최적시간대",
+      "en": "Korean YouTube Best Upload Time"
+    },
+    {
+      "slug": "flashdrop",
+      "url": "https://bal.pe.kr/tools/flashdrop",
+      "emoji": "📇",
+      "ko": "CSV 플래시카드 공유",
+      "en": "CSV Flashcards (no login)"
+    },
+    {
+      "slug": "pmask",
+      "url": "https://bal.pe.kr/tools/pmask",
+      "emoji": "🔒",
+      "ko": "AI 붙여넣기 전 개인정보 마스킹기",
+      "en": "PII Masker for AI Prompts"
+    },
+    {
+      "slug": "printquote",
+      "url": "https://bal.pe.kr/tools/printquote",
+      "emoji": "🖨️",
+      "ko": "인쇄 견적 계산기 (한국 인쇄소)",
+      "en": "Korean Print Shop Quote Calculator"
+    }
+  ]
+}
