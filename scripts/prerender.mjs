@@ -56,6 +56,15 @@ async function prerenderRoute(browser, route) {
     console.warn(`! ${route}: h1 not found within 5s (continuing)`);
   }
 
+  // PRERENDER_TITLE_FIX: 정적 index.html 의 <title> 이 React 가 넣은 페이지 제목보다 뒤에 남아 keepLast 가
+  // 홈 제목을 고르던 문제(하위 페이지 제목이 전부 홈 제목) — 원본 HTML 에 있던 제목은 다른 제목이 있으면 지운다.
+  const __rawHtml = await (await fetch(page.url())).text();
+  await page.evaluate((raw) => {
+    const staticTitles = [...new DOMParser().parseFromString(raw, 'text/html').querySelectorAll('title')].map((n) => n.textContent);
+    const all = [...document.querySelectorAll('title')];
+    const dynamic = all.filter((n) => !staticTitles.includes(n.textContent));
+    if (dynamic.length > 0) all.filter((n) => !dynamic.includes(n)).forEach((n) => n.remove());
+  }, __rawHtml);
   await page.evaluate(() => {
     const keepLast = (sel) => {
       const n = document.querySelectorAll(sel);
